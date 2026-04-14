@@ -2,12 +2,12 @@
 
 | 客户端                  | 维护 | Windows | macOS | Android | iOS | Linux | tvOS | Android TV | 仓库                                                                 | 教程                                                                 |
 |------------------------|:----:|:-------:|:-----:|:-------:|:---:|:-----:|:----:|:----------:|----------------------------------------------------------------------|----------------------------------------------------------------------|
-| sing-box               | 🟢   | ✅      | ✅    | ✅      | ✅  | ✅    | ✅   | ✅         | [官方](https://github.com/SagerNet/sing-box)                        | [前往](https://li7715.blogspot.com/2025/12/blog-post.html)          |
+| sing-box               | 🟢   | ❌      | ❌    | ✅      | ✅  | ✅    | ✅   | ✅         | [官方](https://github.com/SagerNet/sing-box)                        | [前往](https://li7715.blogspot.com/2025/12/blog-post.html)          |
 | Karing                 | 🟢   | ✅      | ✅    | ✅      | ✅  | ✅    | ✅   | ✅         | [官方](https://github.com/KaringX/karing/releases)                  | [前往](https://li7715.blogspot.com/2025/12/blog-post.html)          |
 | FlClash                | 🟢   | ✅      | ✅    | ✅      | ❌  | ✅    | ❌   | ✅         | [官方](https://github.com/chen08209/FlClash/releases)              | [前往](https://li7715.blogspot.com/2025/12/blog-post.html)          |
 | Clash Verge Rev        | 🟢   | ✅      | ✅    | ❌      | ❌  | ✅    | ❌   | ❌         | [官方](https://github.com/clash-verge-rev/clash-verge-rev/releases) | [前往](https://li7715.blogspot.com/2025/12/blog-post.html)          |
 | ClashMi                | 🟢   | ✅      | ✅    | ✅      | ✅  | ✅    | ❌   | ✅         | [官方](https://github.com/KaringX/clashmi/releases)                 | [前往](https://li7715.blogspot.com/2025/12/blog-post.html)          |
-| Hiddify Next           | 🟢   | ✅      | ✅    | ✅      | ✅  | ✅    | ✅   | ✅         | [官方](https://github.com/hiddify/hiddify-app/releases)             | [前往](https://li7715.blogspot.com/2025/12/blog-post.html)          |
+| Hiddify Next           | 🟢   | ✅      | ✅    | ✅      | ✅  | ✅    | ❌   | ✅         | [官方](https://github.com/hiddify/hiddify-app/releases)             | [前往](https://li7715.blogspot.com/2025/12/blog-post.html)          |
 | Clash Meta for Android | 🟢   | ❌      | ❌    | ✅      | ❌  | ❌    | ❌   | ✅         | [官方](https://github.com/MetaCubeX/ClashMetaForAndroid/releases)   | [前往](https://li7715.blogspot.com/2025/12/blog-post.html)          |
 | Clash-Party            | 🟢   | ✅      | ✅    | ❌      | ❌  | ❌    | ❌   | ❌         | [官方](https://github.com/mihomo-party-org/clash-party/releases)    | [前往](https://li7715.blogspot.com/2025/12/blog-post.html)          |
 | Surge for iOS          | 🟢   | ❌      | ❌    | ❌      | ✅  | ❌    | ✅   | ❌         | [商店](https://apps.apple.com/us/app/surge-5/id1442620678)          | [前往](https://li7715.blogspot.com/2025/12/blog-post.html)          |
