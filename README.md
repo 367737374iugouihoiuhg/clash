@@ -18,3 +18,4 @@
 | Surge for iOS     | 🟢   | ❌      | ❌    | ❌      | ✅  | ❌    | [商店](https://apps.apple.com/us/app/surge-5/id1442620678) | [前往](https://github.com/clashbk/clash/wiki/surge) |
 | V2rayN            | 🟢   | ✅      | ✅    | ❌      | ❌  | ❌    | [官方](https://github.com/2dust/v2rayN/releases) | [前往](https://github.com/clashbk/clash/wiki/v2rayn) |
 | Shadowrocket      | 🟢   | ❌      | ❌    | ❌      | ✅  | ❌    | [商店](https://apps.apple.com/us/app/shadowrocket/id932747118) | [前往](https://github.com/clashbk/clash/wiki/shadowrocket) |
+| V2rayNG           | 🟢   | ❌      | ❌    | ✅      | ❌  | ❌    | [官方](https://github.com/2dust/v2rayNG/releases) | [前往](https://github.com/clashbk/clash/wiki/v2rayn) |
