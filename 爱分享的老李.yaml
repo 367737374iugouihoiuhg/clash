@@ -1,6 +1,10 @@
+# 优化版配置 - 2026-05-11
+# 修复了 proxylite 404 错误，移除了废弃的全局配置
+
+# 机场订阅
 proxy-providers:
   Airport1:
-    url: "机场订阅地址"
+    url: "机场订阅"
     type: http
     interval: 86400
     health-check:
@@ -8,6 +12,7 @@ proxy-providers:
       url: https://www.gstatic.com/generate_204
       interval: 300
     proxy: 直连
+
 # 节点信息
 proxies:
   - {name: 直连, type: direct}
@@ -19,22 +24,15 @@ bind-address: "*"
 ipv6: false
 unified-delay: true
 tcp-concurrent: true
-log-level: warning
-global-client-fingerprint: chrome
+log-level: info
+# global-client-fingerprint 已废弃，建议在具体节点中开启
 keep-alive-idle: 600
 keep-alive-interval: 15
 profile:
   store-selected: true
   store-fake-ip: true
 
-# 为防止使用插件朋友遇到面板问题，我注释掉了此模块。
-#external-controller: 0.0.0.0:9090
-#secret: ""
-#external-ui: ui
-#external-ui-name: zashboard
-#external-ui-url: "https://github.com/Zephyruso/zashboard/archive/refs/heads/gh-pages.zip"
-
-# 嗅探（fakeip下其实可以不用嗅探）
+# 嗅探
 sniffer:
   enable: true
   sniff:
@@ -52,12 +50,8 @@ sniffer:
 # 入站
 tun:
   enable: true
-  # system/gvisor/mixed
   stack: mixed
   dns-hijack: ["any:53", "tcp://any:53"]
-  #使用nikki，混入全部不修改的情况，开启接口指定为nikki
-  #device: nikki
-  #使用仅内核自行修改下面三项为true
   auto-route: false
   auto-redirect: false
   auto-detect-interface: false
@@ -75,17 +69,14 @@ dns:
   fake-ip-filter:
     - "rule-set:fakeipfilter_domain"
   default-nameserver:
-    - https://223.5.5.5/dns-query
+    - 223.5.5.5
   proxy-server-nameserver:
     - https://dns.alidns.com/dns-query
-    - https://doh.pub/dns-query
   nameserver:
     - https://dns.alidns.com/dns-query
     - https://doh.pub/dns-query
- 
-# 出站策略，根据自己情况调整每个策略里分组排序，增删都可以，比如把美国自动放到第一个，比如删除香港故转，注意别漏掉表情逗号等。
-# 如果相应分组没有筛选到对应的国家，请根据自己节点名字调整筛选关键字。
-# 没有再使用锚点，是考虑很多新手修改难度，这样新手修改某个分组更容易些。
+
+# 出站策略
 proxy-groups:
   - {name: 🚀 默认代理, type: select, proxies: [♻️ 自动选择, ♻️ 香港自动, ♻️ 日本自动, ♻️ 狮城自动, ♻️ 美国自动, 🇭🇰 香港节点, 🇯🇵 日本节点, 🇸🇬 狮城节点, 🇺🇲 美国节点, 🌐 全部节点, 直连]}
   - {name: 🤖 ChatGPT, type: select, proxies: [♻️ 美国自动, ♻️ 自动选择, ♻️ 香港自动, ♻️ 日本自动, ♻️ 狮城自动, 🇭🇰 香港节点, 🇯🇵 日本节点, 🇸🇬 狮城节点, 🇺🇲 美国节点, 🌐 全部节点, 直连]}
@@ -110,11 +101,13 @@ proxy-groups:
   - {name: ♻️ 美国自动, type: url-test, include-all: true, tolerance: 20, interval: 300, filter: "(?=.*(美|US|(?i)States|America))^((?!(港|台|日|韩|新)).)*$"}
   - {name: ♻️ 自动选择, type: url-test, include-all: true, tolerance: 20, interval: 300, filter: "^((?!(直连)).)*$"}
   - {name: 🌐 全部节点, type: select, include-all: true}
+
 # 规则匹配
 rules:
   - RULE-SET,private_ip,直连,no-resolve
   - RULE-SET,private_domain,直连
-  - RULE-SET,proxylite,🚀 默认代理
+  - DOMAIN-SUFFIX,qichiyu.com,🚀 默认代理
+  # 已移除无效的 proxylite 规则
   - RULE-SET,ai,🤖 ChatGPT
   - RULE-SET,github_domain,👨🏿‍💻 GitHub
   - RULE-SET,speedtest_domain,⚡ Speedtest
@@ -137,15 +130,15 @@ rules:
   - MATCH,🐟 漏网之鱼
 
 # 规则集
-## type：可选http/file/inline  behavior：可选domain/ipcidr/classical format：可选yaml/text/mrs
 rule-anchor:
   ip: &ip {type: http, interval: 86400, behavior: ipcidr, format: mrs}
   domain: &domain {type: http, interval: 86400, behavior: domain, format: mrs}
   class: &class {type: http, interval: 86400, behavior: classical, format: text}
+
 rule-providers: 
   fakeipfilter_domain: {<<: *domain, url: "https://raw.githubusercontent.com/wwqgtxx/clash-rules/release/fakeip-filter.mrs"}
   private_domain: { <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/private.mrs"}
-  proxylite: { <<: *class, url: "https://raw.githubusercontent.com/qichiyuhub/rule/refs/heads/main/proxy.list"}
+  # proxylite 因 404 已在此处移除
   ai: { <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/category-ai-!cn.mrs" }
   youtube_domain: { <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/youtube.mrs"}
   google_domain: { <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/google.mrs"}
@@ -165,4 +158,4 @@ rule-providers:
   google_ip: { <<: *ip, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/google.mrs"}
   telegram_ip: { <<: *ip, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/telegram.mrs"}
   netflix_ip: { <<: *ip, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/netflix.mrs"}
-  apple_ip: {<<: *ip, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo-lite/geoip/apple.mrs"}
+  apple_ip: {<<: *ip, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta-lite/geoip/apple.mrs"}
