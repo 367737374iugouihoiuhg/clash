@@ -127,6 +127,7 @@ proxy-groups:
 
 # 规则匹配
 rules:
+  - DOMAIN-SUFFIX,speedtest.dukekunshan.edu.cn,⚡ Speedtest
   - RULE-SET,private_ip,直连,no-resolve
   - RULE-SET,private_domain,直连
   - RULE-SET,ai,🤖 ChatGPT
