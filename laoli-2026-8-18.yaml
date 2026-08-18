@@ -1,0 +1,299 @@
+mixed-port: 7890
+redir-port: 7892
+tproxy-port: 7895
+allow-lan: true
+bind-address: "*"
+mode: rule
+log-level: warning
+ipv6: false
+unified-delay: true
+tcp-concurrent: true
+
+profile:
+  store-selected: true
+  store-fake-ip: true
+
+geodata-mode: true
+geo-auto-update: true
+geo-update-interval: 24
+geox-url:
+  geoip: "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geoip.dat"
+  geosite: "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geosite.dat"
+  mmdb: "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/country.mmdb"
+
+sniffer:
+  enable: true
+  sniff:
+    TLS:
+      ports: [443, 8443]
+    HTTP:
+      ports: [80, 8080-8880]
+      override-destination: true
+    QUIC:
+      ports: [443, 8443]
+  skip-domain:
+    - "Mijia Cloud"
+    - "dlg.io.mi.com"
+    - "+.push.apple.com"
+    - "+.googlevideo.com"
+
+tun:
+  enable: true
+  stack: mixed
+  mtu: 1492
+  dns-hijack:
+    - any:53
+    - tcp://any:53
+  auto-route: true
+  auto-detect-interface: true
+  strict-route: true
+
+proxies: []
+
+# 分享给别人时，只需要替换下面的 url 订阅链接。
+proxy-providers:
+  Airport:
+    type: http
+    url: "https://ccsub.pz.pe/subscribe/F6CACEPYW1P2LZR9?clash=trojan"
+    interval: 86400
+    path: ./proxy_providers/Airport.yaml
+    proxy: DIRECT
+    exclude-type: "macc"
+    health-check:
+      enable: true
+      url: https://www.gstatic.com/generate_204
+      interval: 300
+
+proxy-groups:
+  - name: PROXY
+    type: select
+    use:
+      - Airport
+    proxies:
+      - AUTO
+      - DIRECT
+
+  - name: AUTO
+    type: url-test
+    use:
+      - Airport
+    url: https://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
+
+dns:
+  enable: true
+  listen: 0.0.0.0:1053
+  cache-algorithm: arc
+  ipv6: false
+  prefer-h3: false
+  use-hosts: true
+  use-system-hosts: true
+  respect-rules: true
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  fake-ip-filter:
+    - "*.lan"
+    - "*.local"
+    - "+.localdomain"
+    - "localhost.ptlogin2.qq.com"
+    - "time.windows.com"
+    - "time.apple.com"
+    - "time.android.com"
+    - "+.googleapis.cn"
+    - "+.xn--ngstr-lra8j.com"
+    - "+.ntp.org.cn"
+    - "+.pool.ntp.org"
+
+  default-nameserver:
+    - 1.1.1.1
+    - 8.8.8.8
+
+  nameserver-policy:
+    "geosite:private,cn,apple-cn,microsoft@cn,steam@cn":
+      - 223.5.5.5
+      - 119.29.29.29
+    "+.cn":
+      - 223.5.5.5
+      - 119.29.29.29
+    "+.中国":
+      - 223.5.5.5
+      - 119.29.29.29
+    "+.公司":
+      - 223.5.5.5
+      - 119.29.29.29
+    "+.网络":
+      - 223.5.5.5
+      - 119.29.29.29
+    "+.google.com":
+      - "https://1.1.1.1/dns-query#PROXY"
+      - "https://dns.google/dns-query#PROXY"
+    "+.googleapis.com":
+      - "https://1.1.1.1/dns-query#PROXY"
+      - "https://dns.google/dns-query#PROXY"
+    "+.googleapis.cn":
+      - "https://1.1.1.1/dns-query#PROXY"
+      - "https://dns.google/dns-query#PROXY"
+    "+.gstatic.com":
+      - "https://1.1.1.1/dns-query#PROXY"
+      - "https://dns.google/dns-query#PROXY"
+    "+.gvt1.com":
+      - "https://1.1.1.1/dns-query#PROXY"
+      - "https://dns.google/dns-query#PROXY"
+    "+.gvt2.com":
+      - "https://1.1.1.1/dns-query#PROXY"
+      - "https://dns.google/dns-query#PROXY"
+    "+.gvt3.com":
+      - "https://1.1.1.1/dns-query#PROXY"
+      - "https://dns.google/dns-query#PROXY"
+    "+.googleusercontent.com":
+      - "https://1.1.1.1/dns-query#PROXY"
+      - "https://dns.google/dns-query#PROXY"
+    "+.ggpht.com":
+      - "https://1.1.1.1/dns-query#PROXY"
+      - "https://dns.google/dns-query#PROXY"
+    "+.android.com":
+      - "https://1.1.1.1/dns-query#PROXY"
+      - "https://dns.google/dns-query#PROXY"
+    "+.xn--ngstr-lra8j.com":
+      - "https://1.1.1.1/dns-query#PROXY"
+      - "https://dns.google/dns-query#PROXY"
+    "+.openai.com":
+      - "https://1.1.1.1/dns-query#PROXY"
+      - "https://dns.google/dns-query#PROXY"
+    "+.chatgpt.com":
+      - "https://1.1.1.1/dns-query#PROXY"
+      - "https://dns.google/dns-query#PROXY"
+    "+.anthropic.com":
+      - "https://1.1.1.1/dns-query#PROXY"
+      - "https://dns.google/dns-query#PROXY"
+    "+.claude.ai":
+      - "https://1.1.1.1/dns-query#PROXY"
+      - "https://dns.google/dns-query#PROXY"
+    "geosite:geolocation-!cn":
+      - "https://1.1.1.1/dns-query#PROXY"
+      - "https://dns.google/dns-query#PROXY"
+
+  nameserver:
+    - "https://1.1.1.1/dns-query#PROXY"
+    - "https://1.0.0.1/dns-query#PROXY"
+    - "https://dns.google/dns-query#PROXY"
+
+  fallback:
+    - "https://1.1.1.1/dns-query#PROXY"
+    - "https://dns.google/dns-query#PROXY"
+
+  proxy-server-nameserver:
+    - 1.1.1.1
+    - 8.8.8.8
+
+  direct-nameserver:
+    - 223.5.5.5
+    - 119.29.29.29
+    - https://dns.alidns.com/dns-query
+    - https://doh.pub/dns-query
+
+  direct-nameserver-follow-policy: true
+
+  fallback-filter:
+    geoip: true
+    geoip-code: CN
+    geosite:
+      - gfw
+    domain:
+      - "+.openai.com"
+      - "+.chatgpt.com"
+      - "+.anthropic.com"
+      - "+.claude.ai"
+      - "+.google.com"
+      - "+.googleapis.com"
+      - "+.googleapis.cn"
+      - "+.gstatic.com"
+      - "+.gvt1.com"
+      - "+.gvt2.com"
+      - "+.gvt3.com"
+      - "+.googleusercontent.com"
+      - "+.ggpht.com"
+      - "+.android.com"
+      - "+.xn--ngstr-lra8j.com"
+      - "+.googlevideo.com"
+      - "+.youtube.com"
+      - "+.ytimg.com"
+      - "+.facebook.com"
+      - "+.instagram.com"
+      - "+.x.com"
+      - "+.twitter.com"
+      - "+.telegram.org"
+    ipcidr:
+      - 240.0.0.0/4
+
+rules:
+  - GEOSITE,private,DIRECT
+  - IP-CIDR,127.0.0.0/8,DIRECT,no-resolve
+  - IP-CIDR,169.254.0.0/16,DIRECT,no-resolve
+  - IP-CIDR,10.0.0.0/8,DIRECT,no-resolve
+  - IP-CIDR,172.16.0.0/12,DIRECT,no-resolve
+  - IP-CIDR,192.168.0.0/16,DIRECT,no-resolve
+  - IP-CIDR,100.64.0.0/10,DIRECT,no-resolve
+  - IP-CIDR,224.0.0.0/4,DIRECT,no-resolve
+  - IP-CIDR,240.0.0.0/4,DIRECT,no-resolve
+  - DOMAIN-SUFFIX,openai.com,PROXY
+  - DOMAIN-SUFFIX,chatgpt.com,PROXY
+  - DOMAIN-SUFFIX,anthropic.com,PROXY
+  - DOMAIN-SUFFIX,claude.ai,PROXY
+  - DOMAIN-SUFFIX,google.com,PROXY
+  - DOMAIN-SUFFIX,googleapis.com,PROXY
+  - DOMAIN-SUFFIX,googleapis.cn,PROXY
+  - DOMAIN-SUFFIX,gstatic.com,PROXY
+  - DOMAIN-SUFFIX,gvt1.com,PROXY
+  - DOMAIN-SUFFIX,gvt2.com,PROXY
+  - DOMAIN-SUFFIX,gvt3.com,PROXY
+  - DOMAIN-SUFFIX,googleusercontent.com,PROXY
+  - DOMAIN-SUFFIX,ggpht.com,PROXY
+  - DOMAIN-SUFFIX,android.com,PROXY
+  - DOMAIN-SUFFIX,android.clients.google.com,PROXY
+  - DOMAIN-SUFFIX,android.googleapis.com,PROXY
+  - DOMAIN-SUFFIX,dl.google.com,PROXY
+  - DOMAIN-SUFFIX,dl-ssl.google.com,PROXY
+  - DOMAIN-SUFFIX,play.googleapis.com,PROXY
+  - DOMAIN-SUFFIX,market.android.com,PROXY
+  - DOMAIN-SUFFIX,xn--ngstr-lra8j.com,PROXY
+  - GEOSITE,google,PROXY
+  - GEOSITE,youtube,PROXY
+  - GEOSITE,telegram,PROXY
+  - GEOSITE,github,PROXY
+  - GEOSITE,category-games@cn,DIRECT
+  - GEOSITE,apple-cn,DIRECT
+  - GEOSITE,microsoft@cn,DIRECT
+  - GEOSITE,steam@cn,DIRECT
+  - DOMAIN-SUFFIX,cn,DIRECT
+  - DOMAIN-SUFFIX,中国,DIRECT
+  - DOMAIN-SUFFIX,公司,DIRECT
+  - DOMAIN-SUFFIX,网络,DIRECT
+  - DOMAIN-SUFFIX,baidu.com,DIRECT
+  - DOMAIN-SUFFIX,bilibili.com,DIRECT
+  - DOMAIN-SUFFIX,iqiyi.com,DIRECT
+  - DOMAIN-SUFFIX,qq.com,DIRECT
+  - DOMAIN-SUFFIX,weixin.qq.com,DIRECT
+  - DOMAIN-SUFFIX,gtimg.com,DIRECT
+  - DOMAIN-SUFFIX,taobao.com,DIRECT
+  - DOMAIN-SUFFIX,tmall.com,DIRECT
+  - DOMAIN-SUFFIX,jd.com,DIRECT
+  - DOMAIN-SUFFIX,alicdn.com,DIRECT
+  - DOMAIN-SUFFIX,aliyuncs.com,DIRECT
+  - DOMAIN-SUFFIX,douyin.com,DIRECT
+  - DOMAIN-SUFFIX,amemv.com,DIRECT
+  - DOMAIN-SUFFIX,bytedance.com,DIRECT
+  - DOMAIN-SUFFIX,byteimg.com,DIRECT
+  - DOMAIN-SUFFIX,163.com,DIRECT
+  - DOMAIN-SUFFIX,126.net,DIRECT
+  - DOMAIN-SUFFIX,weibo.com,DIRECT
+  - DOMAIN-SUFFIX,zhihu.com,DIRECT
+  - DOMAIN-SUFFIX,meituan.com,DIRECT
+  - DOMAIN-SUFFIX,pinduoduo.com,DIRECT
+  - DOMAIN-SUFFIX,xiaomi.com,DIRECT
+  - DOMAIN-SUFFIX,mi.com,DIRECT
+  - GEOSITE,cn,DIRECT
+  - GEOIP,CN,DIRECT
+  - GEOSITE,geolocation-!cn,PROXY
+  - MATCH,PROXY
