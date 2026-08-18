@@ -50,7 +50,7 @@ tun:
 
 proxies: []
 
-# 分享给别人时，只需要替换下面的 url 订阅链接。
+# 把《机场订阅》换成你的机场订阅链接，注意：要保留两边的双引号。
 proxy-providers:
   Airport:
     type: http
