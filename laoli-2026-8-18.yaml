@@ -54,7 +54,7 @@ proxies: []
 proxy-providers:
   Airport:
     type: http
-    url: "https://ccsub.pz.pe/subscribe/F6CACEPYW1P2LZR9?clash=trojan"
+    url: "机场订阅"
     interval: 86400
     path: ./proxy_providers/Airport.yaml
     proxy: DIRECT
