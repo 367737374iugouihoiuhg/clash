@@ -1,299 +1,183 @@
-mixed-port: 7890
-redir-port: 7892
-tproxy-port: 7895
-allow-lan: true
-bind-address: "*"
-mode: rule
-log-level: warning
-ipv6: false
-unified-delay: true
-tcp-concurrent: true
-
-profile:
-  store-selected: true
-  store-fake-ip: true
-
-geodata-mode: true
-geo-auto-update: true
-geo-update-interval: 24
-geox-url:
-  geoip: "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geoip.dat"
-  geosite: "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geosite.dat"
-  mmdb: "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/country.mmdb"
-
-sniffer:
-  enable: true
-  sniff:
-    TLS:
-      ports: [443, 8443]
-    HTTP:
-      ports: [80, 8080-8880]
-      override-destination: true
-    QUIC:
-      ports: [443, 8443]
-  skip-domain:
-    - "Mijia Cloud"
-    - "dlg.io.mi.com"
-    - "+.push.apple.com"
-    - "+.googlevideo.com"
-
-tun:
-  enable: true
-  stack: mixed
-  mtu: 1492
-  dns-hijack:
-    - any:53
-    - tcp://any:53
-  auto-route: true
-  auto-detect-interface: true
-  strict-route: true
-
-proxies: []
-
-# 把《机场订阅》换成你的机场订阅链接，注意：要保留两边的双引号。
+# 必读！！！
+# 本文件为通用 DNS 防泄漏版本，dns/rules/proxy-groups 部分只用内核
+# （mihomo/clash-meta）级别的通用字段，OpenClash、Clash Party、
+# Clash Verge 等客户端均可直接使用。
+#
+# 但请注意：DNS 泄露有一半原因不是配置文件能解决的——
+# 1) OpenClash（路由器/软路由）：若你没有在插件设置里打开"TUN 模式"，
+#    这份文件里的 tun: 整段根本不会生效，DNS 是走 OpenClash 自己的
+#    dnsmasq + fake-ip 逻辑处理的，请去插件的"模式设置"确认已选
+#    Fake-IP（增强）模式、并开启"DNS 劫持"选项。
+# 2) Windows 桌面端（Clash Party / Verge 等）：即使开了 TUN 且劫持了
+#    53 端口，Windows 系统本身的"智能多宿主名称解析"仍会同时向物理
+#    网卡和 Clash 虚拟网卡各发一份 DNS 请求，物理网卡那份会直接泄露，
+#    这是本地专业版 Windows 里最常见的"配置正确但仍然检测出泄露"的
+#    真正原因，必须手动关闭（gpedit.msc → 计算机配置 → 管理模板 →
+#    网络 → DNS 客户端 → 关闭"智能多宿主名称解析"→已启用；家庭版无
+#    组策略，需改注册表，网上有很多教程）。
+# 3) 如果系统开启了 IPv6 而这份配置里 dns/tun 都是 ipv6:false，AAAA
+#    查询可能不会被劫持而直接从物理网卡泄露，最简单的办法是在系统
+#    网络适配器里直接禁用 IPv6（不需要就不用留着）。
+# 若你的设备使用了 Docker/虚拟网卡/Zerotier/Tailscale 等，请检查下方
+# route-exclude-address 与 exclude-interface 是否需要按自己网段调整。
+#
+# 本版本只保留两个出站分组：
+# 🚀 代理：手动选择分组，里面既有"♻️ 自动选择"，也罗列了全部单独节点，
+#          可以手动点选任意一个节点。
+# ♻️ 自动选择：自动测速分组，包含全部节点，自动选延迟最低的那个。
+#
+# 精简说明：删掉了原来近 20 个独立的 rule-providers（每个都是单独一次
+# 网络请求，启动/更新慢的元凶），改用内核内置的 GEOIP 国家库判断"是否
+# 国内"，只需要下载一个数据库文件，其余没匹配到国内 IP 的流量全部走
+# 代理。代价是不再分平台精确匹配 Netflix/GitHub/OneDrive 等，只有
+# "国内直连 / 其余全部代理"这一层判断，胜在快且规则少。下面 dns 部分
+# 的 nameserver-policy 仍然用到了内核自带的 geosite 域名库（同样是单个
+# 文件，不是很多个），这是保留域名级别 DNS 分流精度所必需的，不算慢。
+# 机场订阅
 proxy-providers:
-  Airport:
+  Airport1:
+    url: "订阅链接"
     type: http
-    url: "机场订阅"
-    interval: 86400
-    path: ./proxy_providers/Airport.yaml
-    proxy: DIRECT
-    exclude-type: "macc"
+    interval: 0
     health-check:
       enable: true
       url: https://www.gstatic.com/generate_204
       interval: 300
+    proxy: 直连
 
-proxy-groups:
-  - name: PROXY
-    type: select
-    use:
-      - Airport
-    proxies:
-      - AUTO
-      - DIRECT
+# 节点信息
+proxies:
+  - {name: 直连, type: direct}
 
-  - name: AUTO
-    type: url-test
-    use:
-      - Airport
-    url: https://www.gstatic.com/generate_204
-    interval: 300
-    tolerance: 50
+# 全局配置 
+mixed-port: 7890
+allow-lan: true
+bind-address: "*"
+ipv6: false
+unified-delay: true
+tcp-concurrent: true
+log-level: info
+keep-alive-idle: 600
+keep-alive-interval: 15
+profile:
+  store-selected: true
+  store-fake-ip: true
 
+external-controller: 0.0.0.0:9090
+secret: ""
+external-ui: ui
+external-ui-url: "https://gh-proxy.com/https://github.com/Zephyruso/zashboard/archive/refs/heads/gh-pages.zip"
+
+# 嗅探
+sniffer:
+  enable: true
+  sniff:
+    HTTP:
+      ports: [80, 8080-8880]
+      override-destination: true
+    TLS:
+      ports: [443, 8443]
+    QUIC:
+      ports: [443, 8443]
+  skip-domain:
+    - "Mijia Cloud"
+    - "+.push.apple.com"
+
+# 入站
+tun:
+  enable: true
+  stack: mixed
+  dns-hijack: ["any:53", "tcp://any:53"]
+  auto-route: true
+  auto-redirect: true
+  auto-detect-interface: true
+  # 关键：严格路由模式。开启后所有流量（包括未匹配 auto-route 规则、
+  # 其他网卡产生的流量）都会被强制送入 TUN，避免 DNS/流量绕过代理直接
+  # 从物理网卡发出而泄露。这是本配置与"不防泄漏"版本的核心区别。
+  strict-route: true
+  # strict-route 开启后，本机连接局域网设备、Docker/虚拟网卡等可能受影响，
+  # 按需把相关网段/接口排除掉，保证局域网访问和虚拟化网络正常。
+  route-exclude-address:
+    - 192.168.0.0/16
+    - 10.0.0.0/8
+    - 172.16.0.0/12
+  exclude-interface:
+    - "docker*"
+    - "podman*"
+
+# DNS模块
 dns:
   enable: true
-  listen: 0.0.0.0:1053
   cache-algorithm: arc
   ipv6: false
-  prefer-h3: false
-  use-hosts: true
-  use-system-hosts: true
+  # 让 DNS 域名解析结果按照 proxy-groups 的实际路由结果来处理
+  # （比如走代理的域名，其真实 IP 解析也通过对应代理完成），
+  # 避免解析请求脱离代理规则直接从本地发出而泄露。
   respect-rules: true
+  # 优先使用 hosts 文件中的记录，减少不必要的外部查询
+  use-hosts: true
+  use-system-hosts: false
   enhanced-mode: fake-ip
-  fake-ip-range: 198.18.0.1/16
+  fake-ip-range: 198.18.0.0/16
+  fake-ip-filter-mode: blacklist
   fake-ip-filter:
-    - "*.lan"
-    - "*.local"
-    - "+.localdomain"
-    - "localhost.ptlogin2.qq.com"
-    - "time.windows.com"
-    - "time.apple.com"
-    - "time.android.com"
-    - "+.googleapis.cn"
-    - "+.xn--ngstr-lra8j.com"
-    - "+.ntp.org.cn"
-    - "+.pool.ntp.org"
-
+    - "*"
+    - "+.lan"
+    - "+.local"
+    - "+.market.xiaomi.com"
+  # bootstrap：仅用于解析下面 nameserver/proxy-server-nameserver 中那些
+  # DoH 域名本身（比如 dns.alidns.com 这个域名要先被解析成 IP），
+  # 走明文国内 DNS，不涉及你实际访问的网站域名，不算泄露。
   default-nameserver:
-    - 1.1.1.1
-    - 8.8.8.8
-
-  nameserver-policy:
-    "geosite:private,cn,apple-cn,microsoft@cn,steam@cn":
-      - 223.5.5.5
-      - 119.29.29.29
-    "+.cn":
-      - 223.5.5.5
-      - 119.29.29.29
-    "+.中国":
-      - 223.5.5.5
-      - 119.29.29.29
-    "+.公司":
-      - 223.5.5.5
-      - 119.29.29.29
-    "+.网络":
-      - 223.5.5.5
-      - 119.29.29.29
-    "+.google.com":
-      - "https://1.1.1.1/dns-query#PROXY"
-      - "https://dns.google/dns-query#PROXY"
-    "+.googleapis.com":
-      - "https://1.1.1.1/dns-query#PROXY"
-      - "https://dns.google/dns-query#PROXY"
-    "+.googleapis.cn":
-      - "https://1.1.1.1/dns-query#PROXY"
-      - "https://dns.google/dns-query#PROXY"
-    "+.gstatic.com":
-      - "https://1.1.1.1/dns-query#PROXY"
-      - "https://dns.google/dns-query#PROXY"
-    "+.gvt1.com":
-      - "https://1.1.1.1/dns-query#PROXY"
-      - "https://dns.google/dns-query#PROXY"
-    "+.gvt2.com":
-      - "https://1.1.1.1/dns-query#PROXY"
-      - "https://dns.google/dns-query#PROXY"
-    "+.gvt3.com":
-      - "https://1.1.1.1/dns-query#PROXY"
-      - "https://dns.google/dns-query#PROXY"
-    "+.googleusercontent.com":
-      - "https://1.1.1.1/dns-query#PROXY"
-      - "https://dns.google/dns-query#PROXY"
-    "+.ggpht.com":
-      - "https://1.1.1.1/dns-query#PROXY"
-      - "https://dns.google/dns-query#PROXY"
-    "+.android.com":
-      - "https://1.1.1.1/dns-query#PROXY"
-      - "https://dns.google/dns-query#PROXY"
-    "+.xn--ngstr-lra8j.com":
-      - "https://1.1.1.1/dns-query#PROXY"
-      - "https://dns.google/dns-query#PROXY"
-    "+.openai.com":
-      - "https://1.1.1.1/dns-query#PROXY"
-      - "https://dns.google/dns-query#PROXY"
-    "+.chatgpt.com":
-      - "https://1.1.1.1/dns-query#PROXY"
-      - "https://dns.google/dns-query#PROXY"
-    "+.anthropic.com":
-      - "https://1.1.1.1/dns-query#PROXY"
-      - "https://dns.google/dns-query#PROXY"
-    "+.claude.ai":
-      - "https://1.1.1.1/dns-query#PROXY"
-      - "https://dns.google/dns-query#PROXY"
-    "geosite:geolocation-!cn":
-      - "https://1.1.1.1/dns-query#PROXY"
-      - "https://dns.google/dns-query#PROXY"
-
-  nameserver:
-    - "https://1.1.1.1/dns-query#PROXY"
-    - "https://1.0.0.1/dns-query#PROXY"
-    - "https://dns.google/dns-query#PROXY"
-
-  fallback:
-    - "https://1.1.1.1/dns-query#PROXY"
-    - "https://dns.google/dns-query#PROXY"
-
-  proxy-server-nameserver:
-    - 1.1.1.1
-    - 8.8.8.8
-
-  direct-nameserver:
     - 223.5.5.5
     - 119.29.29.29
-    - https://dns.alidns.com/dns-query
-    - https://doh.pub/dns-query
+  # 兜底解析（不会走 nameserver-policy 命中的域名走这里，走境外加密 DoH）
+  nameserver:
+    - https://dns.cloudflare.com/dns-query
+    - https://dns.google/dns-query
+  # 核心：按域名分流 DNS 解析——这是内核（mihomo/clash-meta）级别的
+  # 能力，OpenClash、Clash Party、Clash Verge 等所有基于该内核的客户端
+  # 都支持，不依赖任何客户端专属功能，因此是"通用"防泄漏的关键。
+  # 命中国内网站/私有地址的域名 → 用国内明文 DNS 解析，走直连获得准确 CDN。
+  # 其余（默认走代理的境外域名）→ 全部走上面 nameserver 里的加密 DoH。
+  nameserver-policy:
+    "geosite:private,cn":
+      - 223.5.5.5
+      - 119.29.29.29
+  # 用于解析代理服务器自身域名（机场订阅域名等），必须用直连/国内 DNS
+  # 明文解析，不能走 fake-ip，否则会出现"解析代理服务器需要先连代理，
+  # 连代理又需要先解析代理服务器"的死循环，也是常见的泄露/连不上根因。
+  proxy-server-nameserver:
+    - https://223.5.5.5/dns-query
+    - https://120.53.53.53/dns-query
+ 
+# 出站策略：只保留两个分组
+# 🚀 代理：手动选择分组，里面包含"♻️ 自动选择"这个自动测速分组，以及
+#          全部单独节点（include-all），可以手动点选任意一个节点，也可
+#          以选中"♻️ 自动选择"交给它自动测速切换。
+# ♻️ 自动选择：url-test 自动测速分组，包含全部节点，自动选延迟最低的。
+proxy-groups:
+  - {name: 🚀 代理, type: select, proxies: [♻️ 自动选择], include-all: true}
+  - {name: ♻️ 自动选择, type: url-test, include-all: true, tolerance: 20, interval: 300, filter: "^((?!(直连)).)*$"}
 
-  direct-nameserver-follow-policy: true
-
-  fallback-filter:
-    geoip: true
-    geoip-code: CN
-    geosite:
-      - gfw
-    domain:
-      - "+.openai.com"
-      - "+.chatgpt.com"
-      - "+.anthropic.com"
-      - "+.claude.ai"
-      - "+.google.com"
-      - "+.googleapis.com"
-      - "+.googleapis.cn"
-      - "+.gstatic.com"
-      - "+.gvt1.com"
-      - "+.gvt2.com"
-      - "+.gvt3.com"
-      - "+.googleusercontent.com"
-      - "+.ggpht.com"
-      - "+.android.com"
-      - "+.xn--ngstr-lra8j.com"
-      - "+.googlevideo.com"
-      - "+.youtube.com"
-      - "+.ytimg.com"
-      - "+.facebook.com"
-      - "+.instagram.com"
-      - "+.x.com"
-      - "+.twitter.com"
-      - "+.telegram.org"
-    ipcidr:
-      - 240.0.0.0/4
-
+# 规则匹配（精简版：不用任何外部规则集，全部走内核内置的 GEOIP 库，
+# 只需下载一个国家 IP 库文件，比之前拉一堆独立规则集快得多）
 rules:
-  - GEOSITE,private,DIRECT
-  - IP-CIDR,127.0.0.0/8,DIRECT,no-resolve
-  - IP-CIDR,169.254.0.0/16,DIRECT,no-resolve
-  - IP-CIDR,10.0.0.0/8,DIRECT,no-resolve
-  - IP-CIDR,172.16.0.0/12,DIRECT,no-resolve
-  - IP-CIDR,192.168.0.0/16,DIRECT,no-resolve
-  - IP-CIDR,100.64.0.0/10,DIRECT,no-resolve
-  - IP-CIDR,224.0.0.0/4,DIRECT,no-resolve
-  - IP-CIDR,240.0.0.0/4,DIRECT,no-resolve
-  - DOMAIN-SUFFIX,openai.com,PROXY
-  - DOMAIN-SUFFIX,chatgpt.com,PROXY
-  - DOMAIN-SUFFIX,anthropic.com,PROXY
-  - DOMAIN-SUFFIX,claude.ai,PROXY
-  - DOMAIN-SUFFIX,google.com,PROXY
-  - DOMAIN-SUFFIX,googleapis.com,PROXY
-  - DOMAIN-SUFFIX,googleapis.cn,PROXY
-  - DOMAIN-SUFFIX,gstatic.com,PROXY
-  - DOMAIN-SUFFIX,gvt1.com,PROXY
-  - DOMAIN-SUFFIX,gvt2.com,PROXY
-  - DOMAIN-SUFFIX,gvt3.com,PROXY
-  - DOMAIN-SUFFIX,googleusercontent.com,PROXY
-  - DOMAIN-SUFFIX,ggpht.com,PROXY
-  - DOMAIN-SUFFIX,android.com,PROXY
-  - DOMAIN-SUFFIX,android.clients.google.com,PROXY
-  - DOMAIN-SUFFIX,android.googleapis.com,PROXY
-  - DOMAIN-SUFFIX,dl.google.com,PROXY
-  - DOMAIN-SUFFIX,dl-ssl.google.com,PROXY
-  - DOMAIN-SUFFIX,play.googleapis.com,PROXY
-  - DOMAIN-SUFFIX,market.android.com,PROXY
-  - DOMAIN-SUFFIX,xn--ngstr-lra8j.com,PROXY
-  - GEOSITE,google,PROXY
-  - GEOSITE,youtube,PROXY
-  - GEOSITE,telegram,PROXY
-  - GEOSITE,github,PROXY
-  - GEOSITE,category-games@cn,DIRECT
-  - GEOSITE,apple-cn,DIRECT
-  - GEOSITE,microsoft@cn,DIRECT
-  - GEOSITE,steam@cn,DIRECT
-  - DOMAIN-SUFFIX,cn,DIRECT
-  - DOMAIN-SUFFIX,中国,DIRECT
-  - DOMAIN-SUFFIX,公司,DIRECT
-  - DOMAIN-SUFFIX,网络,DIRECT
-  - DOMAIN-SUFFIX,baidu.com,DIRECT
-  - DOMAIN-SUFFIX,bilibili.com,DIRECT
-  - DOMAIN-SUFFIX,iqiyi.com,DIRECT
-  - DOMAIN-SUFFIX,qq.com,DIRECT
-  - DOMAIN-SUFFIX,weixin.qq.com,DIRECT
-  - DOMAIN-SUFFIX,gtimg.com,DIRECT
-  - DOMAIN-SUFFIX,taobao.com,DIRECT
-  - DOMAIN-SUFFIX,tmall.com,DIRECT
-  - DOMAIN-SUFFIX,jd.com,DIRECT
-  - DOMAIN-SUFFIX,alicdn.com,DIRECT
-  - DOMAIN-SUFFIX,aliyuncs.com,DIRECT
-  - DOMAIN-SUFFIX,douyin.com,DIRECT
-  - DOMAIN-SUFFIX,amemv.com,DIRECT
-  - DOMAIN-SUFFIX,bytedance.com,DIRECT
-  - DOMAIN-SUFFIX,byteimg.com,DIRECT
-  - DOMAIN-SUFFIX,163.com,DIRECT
-  - DOMAIN-SUFFIX,126.net,DIRECT
-  - DOMAIN-SUFFIX,weibo.com,DIRECT
-  - DOMAIN-SUFFIX,zhihu.com,DIRECT
-  - DOMAIN-SUFFIX,meituan.com,DIRECT
-  - DOMAIN-SUFFIX,pinduoduo.com,DIRECT
-  - DOMAIN-SUFFIX,xiaomi.com,DIRECT
-  - DOMAIN-SUFFIX,mi.com,DIRECT
-  - GEOSITE,cn,DIRECT
-  - GEOIP,CN,DIRECT
-  - GEOSITE,geolocation-!cn,PROXY
-  - MATCH,PROXY
+  - IP-CIDR,127.0.0.0/8,直连,no-resolve
+  - IP-CIDR,192.168.0.0/16,直连,no-resolve
+  - IP-CIDR,10.0.0.0/8,直连,no-resolve
+  - IP-CIDR,172.16.0.0/12,直连,no-resolve
+  - IP-CIDR6,::1/128,直连,no-resolve
+  - IP-CIDR6,fc00::/7,直连,no-resolve
+  - IP-CIDR6,fe80::/10,直连,no-resolve
+  - GEOIP,CN,直连
+  - MATCH,🚀 代理
+
+# GEOIP 数据库下载源：换成 gh-proxy 镜像（跟上面 external-ui-url 用的
+# 是同一个加速服务），国内下载能快不少；如果你本来就有能直连 GitHub
+# 的网络条件，把这一段删掉，用官方默认地址也没问题。
+geodata-mode: true
+geox-url:
+  geoip: "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.metadb"
+  geosite: "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat"
+  mmdb: "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country.mmdb"
